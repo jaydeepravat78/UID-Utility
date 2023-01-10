@@ -1,0 +1,11 @@
+dependencies {
+	compile project(":modules:absli-uid-helper:absli-uid-helper-api")
+
+	compileOnly group: "com.liferay.portal", name: "release.dxp.api"
+}
+
+buildService {
+	apiDir = "../absli-uid-helper-api/src/main/java"
+}
+
+group = "absli.uid.helper"

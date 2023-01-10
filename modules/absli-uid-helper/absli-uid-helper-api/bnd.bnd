@@ -1,0 +1,10 @@
+Bundle-Name: absli-uid-helper-api
+Bundle-SymbolicName: absli.uid.helper.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	absli.uid.helper.exception,\
+	absli.uid.helper.model,\
+	absli.uid.helper.service,\
+	absli.uid.helper.service.persistence
+-check: EXPORTS
+-includeresource: META-INF/service.xml=../absli-uid-helper-service/service.xml
