@@ -1,8 +1,3 @@
-<%@ taglib prefix="portet" uri="http://java.sun.com/portlet" %>
-<%@ page import="com.liferay.portal.kernel.util.ParamUtil" %>
-<%@ page import="absli.uid.helper.model.Absli" %>
-<%@ page import="absli.uid.helper.service.AbsliLocalServiceUtil" %>
-<%@ page import="com.liferay.portal.kernel.exception.PortalException" %>
 <%@include file="init.jsp"%>
 
 <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" />
@@ -11,7 +6,14 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 <%
     long id = ParamUtil.getLong(request, "id");
+    List<Role> userRoles = themeDisplay.getUser().getRoles();
+
 %>
+<c:forEach var="role" items="<%= userRoles %>">
+    <c:if test="${role.getName() == 'uid-admin'}">
+        <span id="role"></span>
+    </c:if>
+</c:forEach>
 <portlet:resourceURL var= "uidObjectArrayURL" id="uidObjectArray"/>
 <portlet:actionURL name="addUid" var="addUidURL" />
 <portlet:resourceURL var="editUrl" id="edit" />
@@ -54,8 +56,8 @@
     </thead>
 </table>
 <aui:script>
-getProduct()
-$('#uidTable').dataTable({
+    getProduct()
+    $('#uidTable').dataTable({
     "ajax": "<%=uidObjectArrayURL%>",
     "columns": [
     { "data": "productName" },
@@ -65,116 +67,123 @@ $('#uidTable').dataTable({
     { "data": "discount" },
     {"data": "createdBy"}
     ],
-        "columnDefs": [
-            {
-            "targets": 6,
-            className: 'dt-body-center',
-            "render": function(data, type, row, meta) {
-                return '<button class="btn btn-sm btn-warning" name="edtBtn" id="' + row.uId+ '" onclick="editUser(this)">Edit</button>';
-                }
-            },
-            {
-                "targets": 7,
-                className: 'dt-body-center',
-                "render": function(data, type, row, meta) {
-                    return '<button class="btn btn-sm btn-danger" name="delBtn" id="' + row.uId+ '" onclick="deleteUser(this)">Delete</button>';
-                }
-            }
-        ]
-});
-var table = $('#uidTable').DataTable();
-$('#<portlet:namespace />uid').on('keyup', function(){
+    "columnDefs": [
+    {
+    "targets": 6,
+    className: 'dt-body-center',
+    "render": function(data, type, row, meta) {
+    if($("#role").length > 0)
+    return '<button class="btn btn-sm btn-warning" name="edtBtn" id="' + row.uId+ '" onclick="editUser(this)">Edit</button>';
+    else
+    return '';
+    }
+    },
+    {
+    "targets": 7,
+    className: 'dt-body-center',
+    "render": function(data, type, row, meta) {
+    if($("#role").length > 0)
+    return '<button class="btn btn-sm btn-danger" name="delBtn" id="' + row.uId+ '" onclick="deleteUser(this)">Delete</button>';
+    else
+    return '';
+    }
+    }
+    ]
+    });
+    var table = $('#uidTable').DataTable();
+    $('#<portlet:namespace />uid').on('keyup', function(){
     console.log(this.value);
     table
     .column(1)
     .search(this.value)
     .draw();
-});
+    });
     function editUser(obj) {
-        var id = $(obj).attr('id');
-        $.ajax({
-            type: "post",
-            url: "<%=editUrl%>",
-            data: {
-            "<portlet:namespace />uid": id,
-            flag: "delete",
-            },
-            success: function(data) {
-                var res = $.parseJSON(data);
+    var id = $(obj).attr('id');
+    $.ajax({
+    type: "post",
+    url: "<%=editUrl%>",
+    data: {
+    "<portlet:namespace />uid": id,
+    flag: "delete",
+    },
+    success: function(data) {
+    var res = $.parseJSON(data);
 
-                $('#<portlet:namespace />product option:contains("' + res.data[0].productName + '")').attr("selected", "selected");
+    $('#<portlet:namespace />product option:contains("' + res.data[0].productName + '")').attr("selected", "selected");
 
-                $('#<portlet:namespace />uid').val(res.data[0].uId);
-                $('#<portlet:namespace />agentCode').val(res.data[0].agentCode);
-                $('#<portlet:namespace />sourceName').val(res.data[0].sourceName);
-                $('#<portlet:namespace />aId').val(res.data[0].id);
-                if(res.data[0].discount == true) {
-                    $('#<portlet:namespace/>discount1').attr('checked', 'checked');
-                } else {
-                    $('#<portlet:namespace/>discount2').attr('checked', 'checked');
-                }
-                $('#uidTable').DataTable().ajax.reload();
-            },
-            error: function(xhr, error) {
-                console.log(xhr.status + " " + error);
-            }
-        });
-        }
+    $('#<portlet:namespace />uid').val(res.data[0].uId);
+    $('#<portlet:namespace />agentCode').val(res.data[0].agentCode);
+    $('#<portlet:namespace />sourceName').val(res.data[0].sourceName);
+    $('#<portlet:namespace />aId').val(res.data[0].id);
+    if(res.data[0].discount == true) {
+    $('#<portlet:namespace/>discount1').attr('checked', 'checked');
+    } else {
+    $('#<portlet:namespace/>discount2').attr('checked', 'checked');
+    }
+    $('#uidTable').DataTable().ajax.reload();
+    },
+    error: function(xhr, error) {
+    console.log(xhr.status + " " + error);
+    }
+    });
+    }
     function deleteUser(obj) {
-        var id = $(obj).attr('id');
-        $.ajax({
-            type: "post",
-            url: "<%=deleteUrl%>",
-            data: {
-                "<portlet:namespace />uid": id,
-        },
-        success: function() {
-            $('#uidTable').DataTable().ajax.reload();
-        },
-        error: function(xhr, error) {
-            console.log(xhr.status + " " + error);
-        }
-        });
+    var id = $(obj).attr('id');
+    $.ajax({
+    type: "post",
+    url: "<%=deleteUrl%>",
+    data: {
+    "<portlet:namespace />uid": id,
+    },
+    success: function() {
+    $('#uidTable').DataTable().ajax.reload();
+    },
+    error: function(xhr, error) {
+    console.log(xhr.status + " " + error);
+    }
+    });
     }
     $("#<portlet:namespace />cancel").click(function(){
-            console.log("clear");
-            $(':input','#<portlet:namespace />myform')
-            .not(':button, :submit, :reset, :hidden')
-            .val('')
-            .removeAttr('checked')
-            .removeAttr('selected');
+    console.log("clear");
+    $(':input','#<portlet:namespace />myform')
+    .not(':button, :submit, :reset, :hidden')
+    .val('')
+    .removeAttr('checked')
+    .removeAttr('selected');
 
     });
 
-function getProduct() {
+    function getProduct() {
     $.ajax({
     type: "get",
     url: "<%= productUrl%>",
     success: function(data) {
-        var res = JSON.parse(data).data;
-        var $select = $("#<portet:namespace/>product");
+    var res = JSON.parse(data).data;
+    var $select = $("#<portet:namespace/>product");
 
-        $.each(res, function(key, value) {
-            console.log(key + " " + value);
-                $('<option>').val(value).text(value).appendTo($select);
-        });
+    $.each(res, function(key, value) {
+    console.log(key + " " + value);
+    $('<option>').val(value).text(value).appendTo($select);
+    });
     },
     error: function(xhr, error) {
-        console.log(xhr.status + " " + error);
+    console.log(xhr.status + " " + error);
     }
     })
     }
     $("#<portet:namespace/>product").select2({
-        placeholder: "Select a product",
-        allowClear: true,
+    placeholder: "Select a product",
+    allowClear: true,
     });
     if($("#<portlet:namespace/>hId").val() > 0) {
-        console.log("update");
+    console.log("update");
 
-        $(':input','#<portlet:namespace />myform')
-        .not(':button, :submit, :reset, :hidden')
-        .val('')
-        .removeAttr('checked')
-        .removeAttr('selected');
+    $(':input','#<portlet:namespace />myform')
+    .not(':button, :submit, :reset, :hidden')
+    .val('')
+    .removeAttr('checked')
+    .removeAttr('selected');
     }
+
 </aui:script>
